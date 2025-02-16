@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+
 // TODO: Define an interface for the Coordinates object
 interface Coordinates {
   lat: number;
@@ -24,13 +25,12 @@ class Weather {
 // TODO: Complete the WeatherService class
 class WeatherService {
   // TODO: Define the baseURL, API key, and city name properties
-  private baseURL = 'https://api.openweathermap.org/data/2.5';
-  private apiKey = process.env.WEATHER_API_KEY;
-  private cityName: string = '';
+  baseURL: string = process.env.API_BASE_URL as string;
+  apiKey: string = process.env.API_KEY as string;
+  cityName: string = '';
   // TODO: Create fetchLocationData method
   private async fetchLocationData(query: string): Promise<any> {
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`;
-    const response = await fetch(url);
+    const response = await fetch(query);
     const data = await response.json();
     if (data.length === 0) throw new Error('City not found');
     return data[0];
@@ -43,17 +43,18 @@ class WeatherService {
     };
   }
   // TODO: Create buildGeocodeQuery method
-  //private buildGeocodeQuery(query: string): string {
-   // return `http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}`;
-  //}
+  private buildGeocodeQuery(): string {
+  return `${this.baseURL}geo/1.0/direct?q=${this.cityName}&limit=5&appid=${this.apiKey}`
+  }
   // TODO: Create buildWeatherQuery method
   private buildWeatherQuery(coordinates: Coordinates): string {
     return `${this.baseURL}/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&exclude=minutely,hourly&units=metric&appid=${this.apiKey}`;
   }
   
   // TODO: Create fetchAndDestructureLocationData method
-  private async fetchAndDestructureLocationData(city: string): Promise<Coordinates> {
-    const locationData = await this.fetchLocationData(city);
+  private async fetchAndDestructureLocationData() {
+    const query = this.buildGeocodeQuery();
+    const locationData = await this.fetchLocationData(query);
     return this.destructureLocationData(locationData);
   }
   // TODO: Create fetchWeatherData method
@@ -89,9 +90,9 @@ class WeatherService {
     return forecastArray;
   }
   // TODO: Complete getWeatherForCity method
-  async getWeatherForCity(city: string): Promise<{ currentWeather: Weather; forecast: any[] }> {
+  async getWeatherForCity(city: string) {
     this.cityName = city;
-    const coordinates = await this.fetchAndDestructureLocationData(city);
+    const coordinates = await this.fetchAndDestructureLocationData();
     const weatherData = await this.fetchWeatherData(coordinates);
     const currentWeather = this.parseCurrentWeather(weatherData.current);
     const forecastArray = this.buildForecastArray(weatherData.daily);
