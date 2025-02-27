@@ -26,13 +26,13 @@ class Weather {
     humidity: number
   ) 
  {
-    this.city = city;
-    this.date = date;
-    this.icon = icon;
-    this.iconDescription = iconDescription;
-    this.tempF = tempF;
-    this.windSpeed = windSpeed;
-    this.humidity = humidity;
+    this.city = city,
+    this.date = date,
+    this.icon = icon,
+    this.iconDescription = iconDescription,
+    this.tempF = tempF,
+    this.windSpeed = windSpeed,
+    this.humidity = humidity
   }
 }
 
@@ -41,7 +41,7 @@ class WeatherService {
   apiKey: string = process.env.API_KEY as string;
   cityName: string = '';
 
-  async fetchLocationData(query: string) {
+ private async fetchLocationData(query: string) {
     const response = await fetch(query);
     const locationData = await response.json();
     return locationData;
@@ -49,8 +49,8 @@ class WeatherService {
 
   destructureLocationData(locationData: any): Coordinates {
     return {
-      lat: locationData.lat,
-      lon: locationData.lon,
+      lat: locationData[0].lat,
+      lon: locationData[0].lon,
     };
   }
 
@@ -64,18 +64,16 @@ class WeatherService {
     return { currentWeather, forecast };
   }
 
-  async fetchAndDestructureLocationData() {
+  private async fetchAndDestructureLocationData() {
     const query = this.buildGeocodeQuery();
     const locationData = await this.fetchLocationData(query);
     return this.destructureLocationData(locationData);
   }
 
-  async fetchWeatherData(coordinates: Coordinates) {
+  private async fetchWeatherData(coordinates: Coordinates) {
     const query = this.buildWeatherQuery(coordinates);
     const currentWeatherResponse = await fetch(query.currentWeather);
     const forecastResponse = await fetch(query.forecast);
-    if (!currentWeatherResponse.ok || !forecastResponse.ok)
-      throw new Error('Failed to fetch weather data');
     const currentWeatherData = await currentWeatherResponse.json();
     const forecastData = await forecastResponse.json();
     return { currentWeatherData, forecastData };

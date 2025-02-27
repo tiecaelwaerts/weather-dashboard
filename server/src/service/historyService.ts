@@ -13,7 +13,7 @@ class City {
 // TODO: Complete the HistoryService class
 class HistoryService {
   // TODO: Define a read method that reads from the searchHistory.json file
-  private async read(): Promise<City[]> {
+  private async read() {
     try {
       const data = await fs.readFile('searchHistory.json', 'utf-8');
       return JSON.parse(data);
@@ -40,7 +40,7 @@ class HistoryService {
   // * BONUS TODO: Define a removeCity method that removes a city from the searchHistory.json file
   async removeCity(id: string): Promise<boolean> {
     const cities = await this.read();
-    const updatedCities = cities.filter((city) => city.id !== id);
+    const updatedCities = cities.filter((city: City) => city.id !== id);
     if (cities.length === updatedCities.length) return false;
     await this.write(updatedCities);
     return true;
