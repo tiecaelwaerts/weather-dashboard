@@ -57,9 +57,6 @@ class WeatherService {
     };
   }
 
-  private buildGeocodeQuery(query: string): string {
-    return `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`;
-  }
 
   private buildWeatherQuery(coordinates: Coordinates) {
     return {
