@@ -57,7 +57,6 @@ class WeatherService {
     };
   }
 
-
   private buildWeatherQuery(coordinates: Coordinates) {
     return {
       currentWeather: `${this.baseURL}/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`,
