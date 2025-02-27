@@ -1,100 +1,106 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-
-// TODO: Define an interface for the Coordinates object
 interface Coordinates {
   lat: number;
   lon: number;
 }
 
-// TODO: Define a class for the Weather object
 class Weather {
   city: string;
-  date: string;
-  icon: string;
-  iconDescription: string;
-  tempF: number;
+  country: string;
+  description: string;
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
   windSpeed: number;
-  humidity: number
+  icon: string;
 
-  constructor(city: string, date: string, icon: string, iconDescription: string, tempF: number, windSpeed: number, humidity: number) {
-    this.city = city,
-    this.date = date,
-    this.icon = icon,
-    this.iconDescription = iconDescription,
-    this.tempF = tempF,
-    this.windSpeed = windSpeed,
-    this.humidity = humidity
+  constructor(
+    city: string,
+    country: string,
+    description: string,
+    temperature: number,
+    feelsLike: number,
+    humidity: number,
+    windSpeed: number,
+    icon: string
+  ) {
+    this.city = city;
+    this.country = country;
+    this.description = description;
+    this.temperature = temperature;
+    this.feelsLike = feelsLike;
+    this.humidity = humidity;
+    this.windSpeed = windSpeed;
+    this.icon = icon;
   }
 }
-// TODO: Complete the WeatherService class
+
 class WeatherService {
-  // TODO: Define the baseURL, API key, and city name properties
   baseURL: string = process.env.API_BASE_URL as string;
   apiKey: string = process.env.API_KEY as string;
   cityName: string = '';
 
-  // TODO: Create fetchLocationData method
-  private async fetchLocationData(query: string) {
-    const response = await fetch(query);
-    const locationData = await response.json();
-    if (locationData.length === 0) throw new Error('City not found');
-    return locationData[0];
+  async fetchLocationData(query: string) {
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.length === 0) throw new Error('City not found');
+    return data[0];
   }
-  // TODO: Create destructureLocationData method
-  private destructureLocationData(locationData: any): Coordinates {
+
+  destructureLocationData(locationData: any): Coordinates {
     return {
       lat: locationData.lat,
       lon: locationData.lon,
     };
   }
 
-  // TODO: Create buildGeocodeQuery method
-  private buildGeocodeQuery(): string {
-  return `${this.baseURL}geo/1.0/direct?q=${this.cityName}&limit=5&appid=${this.apiKey}`
+  private buildGeocodeQuery(query: string): string {
+    return `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`;
   }
 
-  // TODO: Create buildWeatherQuery method
   private buildWeatherQuery(coordinates: Coordinates) {
-    const currentWeather = `${this.baseURL}data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`;
-    const forecast = `${this.baseURL}data/2.5/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`;
-    return {currentWeather, forecast };
+    return {
+      currentWeather: `${this.baseURL}/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`,
+      forecast: `${this.baseURL}/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&exclude=minutely,hourly&units=imperial&appid=${this.apiKey}`,
+    };
   }
-  
-  // TODO: Create fetchAndDestructureLocationData method
-  private async fetchAndDestructureLocationData() {
-    const query = this.buildGeocodeQuery();
-    const locationData = await this.fetchLocationData(query);
+
+  async fetchAndDestructureLocationData(city: string) {
+    const locationData = await this.fetchLocationData(city);
     return this.destructureLocationData(locationData);
   }
-  // TODO: Create fetchWeatherData method
-  private async fetchWeatherData(coordinates: Coordinates) {
+
+  async fetchWeatherData(coordinates: Coordinates) {
     const query = this.buildWeatherQuery(coordinates);
     const currentWeatherResponse = await fetch(query.currentWeather);
     const forecastResponse = await fetch(query.forecast);
+    if (!currentWeatherResponse.ok || !forecastResponse.ok)
+      throw new Error('Failed to fetch weather data');
     const currentWeatherData = await currentWeatherResponse.json();
     const forecastData = await forecastResponse.json();
     return { currentWeatherData, forecastData };
   }
 
-  // TODO: Build parseCurrentWeather method
-  private parseCurrentWeather(response: any): Weather {
+  parseCurrentWeather(response: any): Weather {
     return new Weather(
       this.cityName,
-      new Date(response.dt * 1000).toDateString(),
-      response.weather[0].icon,
+      response.sys.country,
       response.weather[0].description,
       response.main.temp,
+      response.main.feels_like,
+      response.main.humidity,
       response.wind.speed,
-      response.main.humidity
+      response.weather[0].icon
     );
   }
-  // TODO: Complete buildForecastArray method
-  private buildForecastArray(weatherData: any[]) {
+
+  buildForecastArray(weatherData: any[]) {
     const forecastArray = weatherData.map((data: any) => {
       return {
-        date: new Date(data.dt * 1000),
+        date: new Date(data.dt * 1000).toDateString(),
         description: data.weather[0].description,
         temperature: data.temp.day,
         icon: data.weather[0].icon,
@@ -102,10 +108,10 @@ class WeatherService {
     });
     return forecastArray;
   }
-  // TODO: Complete getWeatherForCity method
+
   async getWeatherForCity(city: string) {
     this.cityName = city;
-    const coordinates = await this.fetchAndDestructureLocationData();
+    const coordinates = await this.fetchAndDestructureLocationData(city);
     const weatherData = await this.fetchWeatherData(coordinates);
     const currentWeather = this.parseCurrentWeather(weatherData.currentWeatherData);
     const forecastArray = this.buildForecastArray(weatherData.forecastData.daily);
