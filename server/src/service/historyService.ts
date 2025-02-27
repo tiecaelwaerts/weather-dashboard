@@ -1,10 +1,15 @@
-import * as fs from 'fs/promises';
+import fs from 'fs/promises';
 
 // TODO: Define a City class with name and id properties
 class City {
-  constructor(public name: string, public id: string) {}
-}
+  name: string;
+  id: string;
 
+  constructor(name: string, id: string) {
+    this.name = name,
+    this.id = id
+  }
+}
 // TODO: Complete the HistoryService class
 class HistoryService {
   // TODO: Define a read method that reads from the searchHistory.json file

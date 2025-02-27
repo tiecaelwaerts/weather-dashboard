@@ -8,32 +8,31 @@ interface Coordinates {
 
 class Weather {
   city: string;
-  country: string;
-  description: string;
-  temperature: number;
-  feelsLike: number;
-  humidity: number;
-  windSpeed: number;
+  date: string;
   icon: string;
+  iconDescription: string;
+  tempF: number;
+  windSpeed: number;
+  humidity: number;
+  
 
   constructor(
     city: string,
-    country: string,
-    description: string,
-    temperature: number,
-    feelsLike: number,
-    humidity: number,
+    date: string,
+    icon: string,
+    iconDescription: string,
+    tempF: number,
     windSpeed: number,
-    icon: string
-  ) {
+    humidity: number
+  ) 
+ {
     this.city = city;
-    this.country = country;
-    this.description = description;
-    this.temperature = temperature;
-    this.feelsLike = feelsLike;
-    this.humidity = humidity;
-    this.windSpeed = windSpeed;
+    this.date = date;
     this.icon = icon;
+    this.iconDescription = iconDescription;
+    this.tempF = tempF;
+    this.windSpeed = windSpeed;
+    this.humidity = humidity;
   }
 }
 
@@ -43,11 +42,9 @@ class WeatherService {
   cityName: string = '';
 
   async fetchLocationData(query: string) {
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${this.apiKey}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.length === 0) throw new Error('City not found');
-    return data[0];
+    const response = await fetch(query);
+    const locationData = await response.json();
+    return locationData;
   }
 
   destructureLocationData(locationData: any): Coordinates {
@@ -57,15 +54,19 @@ class WeatherService {
     };
   }
 
-  private buildWeatherQuery(coordinates: Coordinates) {
-    return {
-      currentWeather: `${this.baseURL}/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`,
-      forecast: `${this.baseURL}/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&exclude=minutely,hourly&units=imperial&appid=${this.apiKey}`,
-    };
+  private buildGeocodeQuery(): string {
+    return `${this.baseURL}geo/1.0/direct?q=${this.cityName}&limit=5&appid=${this.apiKey}`;
   }
 
-  async fetchAndDestructureLocationData(city: string) {
-    const locationData = await this.fetchLocationData(city);
+  private buildWeatherQuery(coordinates: Coordinates) {
+    const currentWeather = `${this.baseURL}data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`;
+    const forecast = `${this.baseURL}data/2.5/forecast?lat=${coordinates.lat}&lon=${coordinates.lon}&units=imperial&appid=${this.apiKey}`;
+    return { currentWeather, forecast };
+  }
+
+  async fetchAndDestructureLocationData() {
+    const query = this.buildGeocodeQuery();
+    const locationData = await this.fetchLocationData(query);
     return this.destructureLocationData(locationData);
   }
 
@@ -80,38 +81,47 @@ class WeatherService {
     return { currentWeatherData, forecastData };
   }
 
-  parseCurrentWeather(response: any): Weather {
-    return new Weather(
-      this.cityName,
-      response.sys.country,
+  private parseCurrentWeather(response: any) {
+    const currentDate = new Date((response.dt + response.timezone) * 1000);
+    const data = new Weather (
+      response.name,
+      `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`,
+      response.weather[0].icon,
       response.weather[0].description,
       response.main.temp,
-      response.main.feels_like,
-      response.main.humidity,
       response.wind.speed,
-      response.weather[0].icon
+      response.main.humidity
     );
+    return data;
   }
 
-  buildForecastArray(weatherData: any[]) {
-    const forecastArray = weatherData.map((data: any) => {
-      return {
-        date: new Date(data.dt * 1000).toDateString(),
-        description: data.weather[0].description,
-        temperature: data.temp.day,
-        icon: data.weather[0].icon,
-      };
+  private buildForecastArray(currentWeather: Weather, weatherData: any[]) {
+    const forecastArray = [];
+    forecastArray.push(currentWeather);
+   
+    const forecast = weatherData.filter((day) => day.dt_txt.includes('12:00:00'));
+    forecast.forEach((day) => {
+      const data = new Weather (
+        currentWeather.city,
+        day.dt_txt.split(' ')[0],
+        day.weather[0].icon,
+        day.weather[0].description,
+        day.main.temp,
+        day.wind.speed,
+        day.main.humidity
+      );
+      forecastArray.push(data);
     });
     return forecastArray;
   }
 
   async getWeatherForCity(city: string) {
     this.cityName = city;
-    const coordinates = await this.fetchAndDestructureLocationData(city);
-    const weatherData = await this.fetchWeatherData(coordinates);
+    const coordinates = await this.fetchAndDestructureLocationData();
+    const weatherData = await this.fetchWeatherData(coordinates)
     const currentWeather = this.parseCurrentWeather(weatherData.currentWeatherData);
-    const forecastArray = this.buildForecastArray(weatherData.forecastData.daily);
-    return { currentWeather, forecast: forecastArray };
+    const forecast = this.buildForecastArray(currentWeather, weatherData.forecastData.list);
+    return forecast;
   }
 }
 
