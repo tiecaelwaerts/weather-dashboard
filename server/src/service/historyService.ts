@@ -22,15 +22,26 @@ class HistoryService {
     }
   }
   // TODO: Define a write method that writes the updated cities array to the searchHistory.json file
-  private async write(cities: City[]): Promise<void> {
-    await fs.writeFile('searchHistory.json', JSON.stringify(cities), 'utf-8');
+  private async write(cities: City[]) {
+    return await fs.writeFile('searchHistory.json', JSON.stringify(cities, null, '/t'));
   }
   // TODO: Define a getCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
-  async getCities(): Promise<City[]> {
-    return await this.read();
+  async getCities() {
+    return await this.read().then((cities) => {
+      let parsedCities: City[];
+
+      try {
+        parsedCities = [].concat(JSON.parse(cities));
+      } catch (err) {
+        parsedCities = [];
+      }
+
+      return parsedCities;
+    });
   }
+
   // TODO Define an addCity method that adds a city to the searchHistory.json file
-  async addCity(city: string): Promise<City> {
+  async addCity(city: string) {
     const cities = await this.read();
     const newCity = new City(Date.now().toString(), city);
     cities.push(newCity);

@@ -21,17 +21,17 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 // TODO: GET search history
-router.get('/history', async (_req, res) => {
+router.get('/history', async (_req: Request, res: Response) => {
   try {
-    const history = await HistoryService.getSearchHistory();
-    res.json(history);
+    const savedCities = await HistoryService.getCities();
+    res.json(savedCities);
   } catch (error) {
-    res.status(500).json({error: 'failed to retrieve search history'});
+    console.log(error);
   }
 });
 
 // * BONUS TODO: DELETE city from search history
-router.delete('/history/:id', async (req, res) => {
+router.delete('/history/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await HistoryService.deleteSearch(id);
