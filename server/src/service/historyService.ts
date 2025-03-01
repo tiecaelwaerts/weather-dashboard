@@ -1,4 +1,5 @@
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 
 // TODO: Define a City class with name and id properties
 class City {
@@ -15,7 +16,7 @@ class HistoryService {
   // TODO: Define a read method that reads from the searchHistory.json file
   private async read() {
     try {
-      const data = await fs.readFile('searchHistory.json', 'utf-8');
+      const data = await fs.readFile('db/searchHistory.json', 'utf-8');
       return JSON.parse(data);
     } catch (error) {
       return [];
@@ -23,7 +24,7 @@ class HistoryService {
   }
   // TODO: Define a write method that writes the updated cities array to the searchHistory.json file
   private async write(cities: City[]) {
-    return await fs.writeFile('searchHistory.json', JSON.stringify(cities, null, '/t'));
+    return await fs.writeFile('db/searchHistory.json', JSON.stringify(cities, null, '/t'));
   }
   // TODO: Define a getCities method that reads the cities from the searchHistory.json file and returns them as an array of City objects
   async getCities() {
@@ -42,12 +43,22 @@ class HistoryService {
 
   // TODO Define an addCity method that adds a city to the searchHistory.json file
   async addCity(city: string) {
-    const cities = await this.read();
-    const newCity = new City(Date.now().toString(), city);
-    cities.push(newCity);
-    await this.write(cities);
-    return newCity;
+    if (!city) {
+      throw new Error('City name is required'); 
+    } 
+    const newCity: City = { name: city, id: uuidv4() };
+
+    return await this.getCities()
+      .then((cities) => {
+        if (cities.find((index) => index.name === city)) {
+          return cities;
+        }
+        return [...cities, newCity];
+      })
+      .then((updatedCities) => this.write(updatedCities))
+      .then(() => newCity);
   }
+  
   // * BONUS TODO: Define a removeCity method that removes a city from the searchHistory.json file
   async removeCity(id: string): Promise<boolean> {
     const cities = await this.read();

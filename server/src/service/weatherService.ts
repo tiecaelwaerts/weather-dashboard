@@ -47,7 +47,7 @@ class WeatherService {
     return locationData;
   }
 
-  destructureLocationData(locationData: any): Coordinates {
+  private destructureLocationData(locationData: any): Coordinates {
     return {
       lat: locationData[0].lat,
       lon: locationData[0].lon,
