@@ -43,6 +43,10 @@ const fetchWeather = async (cityName: string) => {
     body: JSON.stringify({ cityName }),
   });
 
+  if (!response.ok) {
+    throw new Error('Failed to fetch weather data');
+  }
+
   const weatherData = await response.json();
 
   console.log('weatherData: ', weatherData);
@@ -52,22 +56,31 @@ const fetchWeather = async (cityName: string) => {
 };
 
 const fetchSearchHistory = async () => {
-  const history = await fetch('/api/weather/history', {
+  const response = await fetch('/api/weather/history', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  return history;
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch search history');
+  }
+
+  return response.json();
 };
 
 const deleteCityFromHistory = async (id: string) => {
-  await fetch(`/api/weather/history/${id}`, {
+  const response = await fetch(`/api/weather/history/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
     },
   });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete city from history');
+  }
 };
 
 /*
@@ -140,7 +153,7 @@ const renderForecastCard = (forecast: any) => {
 };
 
 const renderSearchHistory = async (searchHistory: any) => {
-  const historyList = await searchHistory.json();
+  const historyList = await searchHistory;
 
   if (searchHistoryContainer) {
     searchHistoryContainer.innerHTML = '';
