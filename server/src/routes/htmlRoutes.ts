@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Define route to serve index.html
 router.get('*', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../../../client/dist/index.html'));
+  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
 export default router;
