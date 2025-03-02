@@ -37,9 +37,13 @@ class Weather {
 }
 
 class WeatherService {
-  baseURL: string = process.env.API_BASE_URL as string;
-  apiKey: string = process.env.API_KEY as string;
-  cityName: string = '';
+  baseURL: string;
+  apiKey: string;
+
+  constructor() {
+    this.baseURL = process.env.API_BASE_URL || "";
+    this.apiKey = process.env.API_KEY || "";
+  }
 
  private async fetchLocationData(query: string) {
     const response = await fetch(query);

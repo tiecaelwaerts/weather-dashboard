@@ -1,5 +1,6 @@
 import './styles/jass.css';
 
+
 // * All necessary DOM elements selected
 const searchForm: HTMLFormElement = document.getElementById(
   'search-form'
@@ -43,10 +44,6 @@ const fetchWeather = async (cityName: string) => {
     body: JSON.stringify({ cityName }),
   });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch weather data');
-  }
-
   const weatherData = await response.json();
 
   console.log('weatherData: ', weatherData);
@@ -56,31 +53,22 @@ const fetchWeather = async (cityName: string) => {
 };
 
 const fetchSearchHistory = async () => {
-  const response = await fetch('/api/weather/history', {
+  const history = await fetch('/api/weather/history', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch search history');
-  }
-
-  return response.json();
+  return history;
 };
 
 const deleteCityFromHistory = async (id: string) => {
-  const response = await fetch(`/api/weather/history/${id}`, {
+  await fetch(`/api/weather/history/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
     },
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete city from history');
-  }
 };
 
 /*
@@ -90,7 +78,7 @@ Render Functions
 */
 
 const renderCurrentWeather = (currentWeather: any): void => {
-  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } =
+  const { city, date, icon, iconDescription, temperature, windSpeed, humidity } =
     currentWeather;
 
   // convert the following to typescript
@@ -102,7 +90,7 @@ const renderCurrentWeather = (currentWeather: any): void => {
   weatherIcon.setAttribute('alt', iconDescription);
   weatherIcon.setAttribute('class', 'weather-img');
   heading.append(weatherIcon);
-  tempEl.textContent = `Temp: ${tempF}°F`;
+  tempEl.textContent = `Temp: ${temperature}°F`;
   windEl.textContent = `Wind: ${windSpeed} MPH`;
   humidityEl.textContent = `Humidity: ${humidity} %`;
 
@@ -131,7 +119,7 @@ const renderForecast = (forecast: any): void => {
 };
 
 const renderForecastCard = (forecast: any) => {
-  const { date, icon, iconDescription, tempF, windSpeed, humidity } = forecast;
+  const { date, icon, iconDescription, temperature, windSpeed, humidity } = forecast;
 
   const { col, cardTitle, weatherIcon, tempEl, windEl, humidityEl } =
     createForecastCard();
@@ -143,7 +131,7 @@ const renderForecastCard = (forecast: any) => {
     `https://openweathermap.org/img/w/${icon}.png`
   );
   weatherIcon.setAttribute('alt', iconDescription);
-  tempEl.textContent = `Temp: ${tempF} °F`;
+  tempEl.textContent = `Temp: ${temperature} °F`;
   windEl.textContent = `Wind: ${windSpeed} MPH`;
   humidityEl.textContent = `Humidity: ${humidity} %`;
 
@@ -153,7 +141,7 @@ const renderForecastCard = (forecast: any) => {
 };
 
 const renderSearchHistory = async (searchHistory: any) => {
-  const historyList = await searchHistory;
+  const historyList = await searchHistory.json();
 
   if (searchHistoryContainer) {
     searchHistoryContainer.innerHTML = '';
