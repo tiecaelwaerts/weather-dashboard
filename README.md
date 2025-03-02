@@ -1,5 +1,5 @@
 # Weather Dashboard
-![Weather Dashboard](weatherDashboard.png)
+![Weather Dashboard](assets/weatherDashboard.png)
 
 ## Description
 A weather website that will allow you to search cities and store recent searches. It shows the current weather and a 5 day forecast.
