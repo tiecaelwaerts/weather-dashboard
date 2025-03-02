@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run client:build && npm run server",
@@ -23,7 +24,9 @@
     "@types/express": "^5.0.0",
     "concurrently": "^8.2.2",
     "nodemon": "^3.1.0",
-    "wait-on": "^7.2.0"
+    "wait-on": "^7.2.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.2",
